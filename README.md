@@ -60,8 +60,58 @@ npx prisma
 
 Prisma用の設定ファイルを作成するためにnpx prisma initコマンドを実行します。実行するとプロジェクトフォルダにはprismaフォルダと.envファイルが作成されます。prismaフォルダにはPrismaの設定ファイルであるschema.prismaファイルが作成されています。.envファイルはデータベースに接続するために必要となる環境変数を設定するために利用します。
 
+**注意: もしprismaフォルダが既に存在する場合は、このコマンドをスキップするか、既存のprismaフォルダを削除してから実行してください。**
+
 ```bash
 npx prisma init --datasource-provider postgresql
+```
+
+**schema.prismaファイルを設定する**
+
+prisma/schema.prismaファイルを開き、以下のようにUserモデルを追加します：
+
+```prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+```
+
+**.envファイルでデータベース接続情報を設定する**
+
+.envファイルを開き、PostgreSQLデータベースの接続情報を設定します。**プレースホルダーの値を実際のデータベース情報に置き換えてください：**
+
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+```
+
+**実際の例（Dockerを使用している場合）：**
+```env
+DATABASE_URL="postgresql://postgres:your_actual_password@localhost:5432/prisma_tutorial"
+```
+
+**注意事項：**
+- `username`: 実際のPostgreSQLユーザー名（通常は`postgres`）
+- `password`: 実際のPostgreSQLパスワード
+- `database_name`: 実際のデータベース名（事前に作成が必要）
+- ポート番号はDockerの設定に合わせて変更してください（デフォルトは5432）
+
+**データベースが存在しない場合は、PostgreSQLで事前に作成してください：**
+```sql
+CREATE DATABASE prisma_tutorial;
 ```
 
 Expressををインストール
@@ -73,6 +123,14 @@ TypesScript用にExpress.jsの型定義をインストール
 
 ```bash
 npm install @types/express --save-dev
+```
+
+**Prisma Clientを生成する**
+
+モデルを定義した後、Prisma Clientを生成します：
+
+```bash
+npx prisma generate
 ```
 
 利用するデータベース情報とモデルの設定が完了したのでマイグレーションの実行を行います。マイグレーションを実行することでshema.prismaに記述したモデルを元にデータベースにテーブルを作成することができます。コマンドを実行するとマイグレーションに任意の名前をつける必要があるのでここでは”init”という名前をつけています。
